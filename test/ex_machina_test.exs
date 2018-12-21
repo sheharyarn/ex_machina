@@ -29,6 +29,21 @@ defmodule ExMachinaTest do
         __struct__: Foo.Bar
       }
     end
+
+    def comment_factory(attrs) do
+      %{name: name} = attrs
+
+      username = sequence(:username, &"#{name}-#{&1}")
+
+      %{
+        author: "#{name} Doe",
+        username: username
+      }
+    end
+
+    def phone_factory(_) do
+      sequence(:phone_number, &"+1555222333#{&1}")
+    end
   end
 
   test "sequence/2 sequences a value" do
@@ -75,6 +90,17 @@ defmodule ExMachinaTest do
     assert_raise KeyError, fn ->
       Factory.build(:struct, doesnt_exist: true)
     end
+  end
+
+  test "build/2 allows factories to receive params and handle them" do
+    assert Factory.build(:comment, name: "James") == %{
+             author: "James Doe",
+             username: "James-0"
+           }
+  end
+
+  test "build/2 allows custom (non-map) factories to be built" do
+    assert Factory.build(:phone) == "+15552223330"
   end
 
   test "build_pair/2 builds 2 factories" do

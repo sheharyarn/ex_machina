@@ -171,10 +171,15 @@ defmodule ExMachina do
     attrs = Enum.into(attrs, %{})
     function_name = build_function_name(factory_name)
 
-    if Code.ensure_loaded?(module) && function_exported?(module, function_name, 0) do
-      apply(module, function_name, []) |> do_merge(attrs)
-    else
-      raise UndefinedFactoryError, factory_name
+    cond do
+      factory_accepting_attributes_defined?(module, function_name) ->
+        apply(module, function_name, [attrs])
+
+      factory_without_attributes_defined?(module, function_name) ->
+        apply(module, function_name, []) |> do_merge(attrs)
+
+      true ->
+        raise UndefinedFactoryError, factory_name
     end
   end
 
@@ -183,6 +188,14 @@ defmodule ExMachina do
     |> Atom.to_string()
     |> Kernel.<>("_factory")
     |> String.to_atom()
+  end
+
+  defp factory_accepting_attributes_defined?(module, function_name) do
+    Code.ensure_loaded?(module) && function_exported?(module, function_name, 1)
+  end
+
+  defp factory_without_attributes_defined?(module, function_name) do
+    Code.ensure_loaded?(module) && function_exported?(module, function_name, 0)
   end
 
   defp do_merge(%{__struct__: _} = record, attrs), do: struct!(record, attrs)
