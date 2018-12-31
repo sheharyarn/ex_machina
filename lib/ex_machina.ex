@@ -36,7 +36,7 @@ defmodule ExMachina do
     quote do
       @before_compile unquote(__MODULE__)
 
-      import ExMachina, only: [sequence: 1, sequence: 2]
+      import ExMachina, only: [sequence: 1, sequence: 2, merge_attributes: 2]
 
       def build(factory_name, attrs \\ %{}) do
         ExMachina.build(__MODULE__, factory_name, attrs)
@@ -176,7 +176,7 @@ defmodule ExMachina do
         apply(module, function_name, [attrs])
 
       factory_without_attributes_defined?(module, function_name) ->
-        apply(module, function_name, []) |> do_merge(attrs)
+        apply(module, function_name, []) |> merge_attributes(attrs)
 
       true ->
         raise UndefinedFactoryError, factory_name
@@ -198,8 +198,29 @@ defmodule ExMachina do
     Code.ensure_loaded?(module) && function_exported?(module, function_name, 0)
   end
 
-  defp do_merge(%{__struct__: _} = record, attrs), do: struct!(record, attrs)
-  defp do_merge(record, attrs), do: Map.merge(record, attrs)
+  @doc """
+  Helper function to merge attributes into a factory that could be either a map
+  or a struct.
+
+  ## Example
+
+    # custom factory
+    def article_factory(attrs) do
+      title = Map.get(attrs, :title, "default title")
+
+      article = %Article{
+        title: title
+      }
+
+      merge_attributes(article, attrs)
+    end
+
+  Note that when trying to merge attributes into a struct, this function will
+  raise if one of the attributes is not defined in the struct.
+  """
+  @spec merge_attributes(struct | map, map) :: struct | map | no_return
+  def merge_attributes(%{__struct__: _} = record, attrs), do: struct!(record, attrs)
+  def merge_attributes(record, attrs), do: Map.merge(record, attrs)
 
   @doc """
   Builds two factories.

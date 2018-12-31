@@ -35,10 +35,12 @@ defmodule ExMachinaTest do
 
       username = sequence(:username, &"#{name}-#{&1}")
 
-      %{
+      comment = %{
         author: "#{name} Doe",
         username: username
       }
+
+      merge_attributes(comment, attrs)
     end
 
     def phone_factory(_) do
@@ -92,10 +94,11 @@ defmodule ExMachinaTest do
     end
   end
 
-  test "build/2 allows factories to receive params and handle them" do
+  test "build/2 allows factories to have full control of provided arguments" do
     assert Factory.build(:comment, name: "James") == %{
              author: "James Doe",
-             username: "James-0"
+             username: "James-0",
+             name: "James"
            }
   end
 
