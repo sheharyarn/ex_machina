@@ -18,7 +18,7 @@ In `mix.exs`, add the ExMachina dependency:
 
 ```elixir
 def deps do
-  # Get the latest from hex.pm. Works with Ecto 2.0
+  # Get the latest from hex.pm. Works with Ecto 3.0
   [
     {:ex_machina, "~> 2.2"},
   ]
@@ -163,6 +163,29 @@ params_with_assocs(:comment, attrs)
 # for Phoenix controller tests.
 string_params_for(:comment, attrs)
 string_params_with_assocs(:comment, attrs)
+```
+
+### Full control of arguments
+
+By default, ExMachina will merge the attributes you pass in build/insert into
+your factory. But if you want full control of your factory, you can define it
+accepting the attributes as an argument in your factory.
+
+NOTE that with this ExMachina will not merge the attributes into your factory
+and you will have to do this on your own if desired.
+
+```elixir
+def custom_article_factory(attrs) do
+  title = Map.get(attrs, :title, "default title")
+
+  article = %Article{
+    author: "John Doe",
+    title: title
+  }
+
+  # convenience function to aid in merging attributes
+  merge_attributes(article, attrs)
+end
 ```
 
 ## Usage in a test
