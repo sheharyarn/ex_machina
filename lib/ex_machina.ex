@@ -171,10 +171,15 @@ defmodule ExMachina do
     attrs = Enum.into(attrs, %{})
     function_name = build_function_name(factory_name)
 
-    if Code.ensure_loaded?(module) && function_exported?(module, function_name, 0) do
-      apply(module, function_name, []) |> do_merge(attrs)
-    else
-      raise UndefinedFactoryError, factory_name
+    cond do
+      Code.ensure_loaded?(module) && function_exported?(module, function_name, 1) ->
+        apply(module, function_name, [attrs])
+
+      Code.ensure_loaded?(module) && function_exported?(module, function_name, 0) ->
+        apply(module, function_name, []) |> do_merge(attrs)
+
+      true ->
+        raise UndefinedFactoryError, factory_name
     end
   end
 
